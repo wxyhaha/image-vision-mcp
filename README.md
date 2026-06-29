@@ -1,76 +1,76 @@
 ﻿# image-vision-mcp
 
-A tiny **stdio MCP server** that gives your AI coding assistant (Codex, Claude Code, etc.) the ability to **see images**.
+一个轻量的 **stdio MCP server**,给你的 AI 编程助手(Codex、Claude Code 等)加上**看图能力**。
 
-It exposes a single tool, `describe_image`, which sends a local file path, an HTTP(S) URL, or a base64 data URI to a multimodal vision model through any **OpenAI-compatible** `/v1/chat/completions` endpoint, and returns a detailed text description the calling model can use.
+它只暴露一个工具 `describe_image`:接收本地文件路径、HTTP(S) 链接或 base64 data URI,发给任意 **OpenAI 兼容**的 `/v1/chat/completions` 多模态端点,返回一段详细的文字描述,供调用方模型使用。
 
-No native binaries, no Python — just one Node.js file and one dependency (`@modelcontextprotocol/sdk`).
-
----
-
-## Features
-
-- `describe_image` tool with an OpenAI-compatible vision backend
-- Accepts **local file paths**, **http(s) URLs**, and **base64 data URIs**
-- 20 MB image size guard
-- Fully configurable via environment variables (model, endpoint, auth token)
-- Works with any MCP client: Codex, Claude Code, etc.
+无需原生二进制、无需 Python —— 整个服务只有一个 Node.js 文件和唯一依赖 `@modelcontextprotocol/sdk`。
 
 ---
 
-## Requirements
+## 功能特性
 
-- [Node.js](https://nodejs.org/) `>= 18` (needs global `fetch`)
-- An OpenAI-compatible multimodal endpoint. This can be:
-  - A local proxy such as [CC Switch](https://github.com/farion1231/cc-switch) running on `127.0.0.1:15721`
-  - A cloud provider (OpenAI, etc.)
-  - A self-hosted gateway
+- `describe_image` 工具,后端为 OpenAI 兼容的视觉模型
+- 支持 **本地文件路径**、**http(s) 链接**、**base64 data URI** 三种输入
+- 内置 20 MB 图片体积上限保护
+- 全部参数通过环境变量配置(模型、端点、鉴权 token)
+- 兼容任何 MCP 客户端:Codex、Claude Code 等
 
 ---
 
-## Install
+## 运行环境要求
+
+- [Node.js](https://nodejs.org/) `>= 18`(需要内置全局 `fetch`)
+- 一个 OpenAI 兼容的多模态端点。可以是:
+  - 本地代理,例如 [CC Switch](https://github.com/farion1231/cc-switch),运行在 `127.0.0.1:15721`
+  - 云厂商(OpenAI 等)
+  - 自建网关
+
+---
+
+## 安装
 
 ```bash
-git clone https://github.com/<your-user>/image-vision-mcp.git
+git clone https://github.com/wxyhaha/image-vision-mcp.git
 cd image-vision-mcp
 npm install
 ```
 
-> No global install is needed — MCP clients launch the server via `node server.js`.
+> 无需全局安装 —— MCP 客户端通过 `node server.js` 启动本服务。
 
 ---
 
-## Configuration
+## 配置说明
 
-All settings are environment variables:
+全部通过环境变量配置:
 
-| Variable             | Default                       | Description                                                                 |
-| -------------------- | ----------------------------- | --------------------------------------------------------------------------- |
-| `VISION_PROXY_BASE`  | `http://127.0.0.1:15721`      | Base URL of an OpenAI-compatible endpoint (the server appends `/v1/chat/completions`). |
-| `VISION_MODEL`       | `mimo-v2.5`                   | Multimodal model name to request.                                           |
-| `VISION_PROXY_TOKEN` | *(empty)*                     | Bearer token sent as `Authorization`. Falls back to `"none"` when empty.  |
+| 变量名               | 默认值                        | 说明                                                                 |
+| -------------------- | ----------------------------- | --------------------------------------------------------------------- |
+| `VISION_PROXY_BASE`  | `http://127.0.0.1:15721`      | OpenAI 兼容端点的根地址(本服务会自动拼接 `/v1/chat/completions`)。   |
+| `VISION_MODEL`       | `mimo-v2.5`                   | 要调用的多模态模型名称。                                              |
+| `VISION_PROXY_TOKEN` | *(空)*                        | 作为 `Authorization: Bearer <token>` 发送的鉴权 token,为空时回退到 `"none"`。 |
 
 ---
 
-## Usage with Codex
+## 在 Codex 中使用
 
-Add this to `~/.codex/config.toml` (Windows: `%USERPROFILE%\.codex\config.toml`):
+把下面这段加到 `~/.codex/config.toml`(Windows 下为 `%USERPROFILE%\.codex\config.toml`):
 
 ```toml
 [mcp_servers.image_vision]
-args = ['<absolute-path-to-this-repo>/server.js']
+args = ['<本仓库的绝对路径>/server.js']
 command = 'node'
 startup_timeout_sec = 15
 
 [mcp_servers.image_vision.env]
 VISION_MODEL = "mimo-v2.5"
 VISION_PROXY_BASE = "http://127.0.0.1:15721"
-# Optional: VISION_PROXY_TOKEN = "sk-..."
+# 可选: VISION_PROXY_TOKEN = "sk-..."
 ```
 
-Then restart Codex and send it an image — the model will call `describe_image` automatically.
+然后重启 Codex,给它发一张图片,模型会自动调用 `describe_image`。
 
-### Direct endpoint (no proxy)
+### 直连端点(不走本地代理)
 
 ```toml
 [mcp_servers.image_vision.env]
@@ -81,51 +81,62 @@ VISION_PROXY_TOKEN = "sk-your-key-here"
 
 ---
 
-## Usage with Claude Code
+## 在 Claude Code 中使用
 
-Add an MCP server pointing at this repo:
+添加一个指向本仓库的 MCP server:
 
 ```bash
-claude mcp add image-vision-mcp -- node /absolute/path/to/image-vision-mcp/server.js
+claude mcp add image-vision-mcp -- node /本仓库的绝对路径/image-vision-mcp/server.js
 ```
 
-Then set env vars (e.g. through your shell or Claude Code's config):
+然后设置环境变量(在你的 shell 或 Claude Code 配置里):
 
 ```bash
 export VISION_PROXY_BASE="http://127.0.0.1:15721"
 export VISION_MODEL="mimo-v2.5"
-export VISION_PROXY_TOKEN="sk-..."   # optional
+export VISION_PROXY_TOKEN="sk-..."   # 可选
 ```
 
 ---
 
-## Verify it works
+## 验证安装是否成功
 
 ```bash
-npm run check   # syntax check of server.js
-npm start        # should start and wait on stdio; Ctrl+C to exit
+npm run check   # 对 server.js 做语法检查
+npm start        # 应正常启动并在 stdio 上等待,按 Ctrl+C 退出
 ```
 
-End-to-end test (quick smoke from a script):
-
-```js
-// test-smoke.mjs — run after setting the env vars above
-import { callVisionModel } from "./server.js"; // not exported; see note
-```
-
-> `callVisionModel` is not exported by default. For a real smoke test, send any image through your MCP client and check that a text description comes back.
+完整链路冒烟测试:通过你的 MCP 客户端发一张图,看是否返回文字描述即可。
 
 ---
 
-## How it works
+## 工作原理
 
-1. The MCP client receives an image reference from the model.
-2. It calls `describe_image` with `image_path` (and optional `question`).
-3. The server reads the file (or fetches the URL), encodes to a base64 data URL, and POSTs to `${VISION_PROXY_BASE}/v1/chat/completions` with the model in `VISION_MODEL`.
-4. The returned text description is handed back to the calling model as tool output.
+1. MCP 客户端收到模型给出的图片引用。
+2. 调用本服务的 `describe_image`,传入 `image_path`(和可选的 `question`)。
+3. 本服务读取文件(或拉取 URL),编码为 base64 data URI,以 `VISION_MODEL` 指定的模型 POST 到 `${VISION_PROXY_BASE}/v1/chat/completions`。
+4. 返回的文字描述作为工具输出交还给调用方模型。
 
 ---
 
-## License
+## 国内推送/克隆注意事项
+
+若本机直连 `github.com:443` 报 OpenSSL `SSL_ERROR_SYSCALL` 等错误,通常是网络问题。给 git 配上代理即可:
+
+```powershell
+git config --global http.proxy http://127.0.0.1:7897
+git config --global https.proxy http://127.0.0.1:7897
+```
+
+取消代理:
+
+```powershell
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+```
+
+---
+
+## 许可协议
 
 MIT
