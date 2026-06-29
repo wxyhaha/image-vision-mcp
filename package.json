@@ -1,0 +1,30 @@
+﻿{
+  "name": "image-vision-mcp",
+  "version": "1.0.0",
+  "description": "A stdio MCP server that describes/analyzes images using a multimodal vision model via an OpenAI-compatible endpoint.",
+  "type": "module",
+  "main": "server.js",
+  "bin": {
+    "image-vision-mcp": "server.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "vision",
+    "image",
+    "multimodal",
+    "codex",
+    "claude"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
