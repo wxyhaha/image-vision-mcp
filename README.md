@@ -118,25 +118,6 @@ npm start        # 应正常启动并在 stdio 上等待,按 Ctrl+C 退出
 4. 返回的文字描述作为工具输出交还给调用方模型。
 
 ---
-
-## 国内推送/克隆注意事项
-
-若本机直连 `github.com:443` 报 OpenSSL `SSL_ERROR_SYSCALL` 等错误,通常是网络问题。给 git 配上代理即可:
-
-```powershell
-git config --global http.proxy http://127.0.0.1:7897
-git config --global https.proxy http://127.0.0.1:7897
-```
-
-取消代理:
-
-```powershell
-git config --global --unset http.proxy
-git config --global --unset https.proxy
-```
-
----
-
 ## 许可协议
 
 MIT
